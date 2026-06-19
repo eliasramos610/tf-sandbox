@@ -2,8 +2,8 @@ resource "google_compute_instance" "my-vm" {
     name = "my-vm"
     machine_type = "e2-micro"
     network_interface {
-      network = "sandbox-network"
-      subnetwork = "subnet-01"
+      network = module.vpc.network_name
+      subnetwork = module.vpc.subnets_names[0]
       access_config {
         //ephemeral external ip
       }
@@ -28,7 +28,7 @@ resource "google_compute_instance" "my-vm" {
 }
 
 resource "google_storage_bucket" "tf-sandbox-bucket" {
-  name          = "tf-bucket-sandbox"
+  name          = var.tf-bucket
   location      = "US"
   force_destroy = true
   uniform_bucket_level_access = true
@@ -86,7 +86,7 @@ module "vpc" {
       description             = "Allow SSH access only from my public IP"
       direction               = "INGRESS"
       priority                = 1000
-      source_ranges           = ["${var.my_public_ip}/32"]
+      ranges                  = ["${var.my_public_ip}"]
       destination_ranges      = []
       source_tags             = null
       source_service_accounts = null
@@ -100,7 +100,22 @@ module "vpc" {
       ]
       deny       = []
       log_config = null
-    }
+    },
+      {
+        name        = "deny-all-egress"
+        description = "Deny all other ingress traffic"
+        direction   = "EGRESS"
+        priority    = 65534
+        ranges      = ["${var.ip_all}"]
+        allow       = []
+        deny = [
+          {
+            protocol = "all"
+            ports    = []
+          }
+        ]
+        log_config = null
+      }
     ]
 
 }
