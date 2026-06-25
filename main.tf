@@ -3,7 +3,7 @@ resource "google_compute_instance" "my-vm" {
     machine_type = "e2-micro"
     network_interface {
       network = module.vpc.network_name
-      subnetwork = module.vpc.subnets_names[0]
+      subnetwork = module.vpc.subnets_names[1]
       access_config {
         //ephemeral external ip
       }
@@ -23,7 +23,7 @@ resource "google_compute_instance" "my-vm" {
     scopes = ["cloud-platform"]
   }
   allow_stopping_for_update = true 
-
+  depends_on = [ module.vpc ]
   
 }
 
@@ -76,6 +76,11 @@ module "vpc" {
         {
             subnet_name           = "subnet-01"
             subnet_ip             = "10.10.10.0/24"
+            subnet_region         = "europe-west9"
+        },
+        {
+            subnet_name           = "subnet-02"
+            subnet_ip             = "10.10.1.0/24"
             subnet_region         = "europe-west9"
         }
     ]
